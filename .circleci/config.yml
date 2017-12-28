@@ -5,4 +5,4 @@ jobs:
       - image: circleci/openjdk:8
     steps:
       - checkout
-      - run: mvn clean compile
+      - run: mvn clean compile test
