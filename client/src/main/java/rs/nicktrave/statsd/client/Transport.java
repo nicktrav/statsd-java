@@ -17,8 +17,6 @@ package rs.nicktrave.statsd.client;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import rs.nicktrave.statsd.common.Metric;
 
 /**
@@ -34,13 +32,4 @@ public interface Transport extends Closeable {
    * @throws IOException if one or more metrics could not be written
    */
   void write(Metric ...metrics) throws IOException;
-
-  /**
-   * Attempts to close the transport within the specified time interval. If the close does not
-   * complete within the interval, any metrics that have yet to be written are discarded.
-   *
-   * @param timeout the amount of time
-   * @param timeUnit the unit of time
-   */
-  void close(long timeout, TimeUnit timeUnit) throws IOException, TimeoutException;
 }

@@ -25,6 +25,7 @@ import rs.nicktrave.statsd.common.Metric;
 public class UnbufferedCollector implements Collector {
 
   private final Transport transport;
+  private Metric[] metrics;
 
   /**
    * Creates a new {@link Collector} that will perform a blocking write to the given transport as
@@ -41,19 +42,28 @@ public class UnbufferedCollector implements Collector {
    *
    * <p>This method performs a blocking write to the underlying transport.
    */
-  @Override public void add(Metric... metrics) {
+  @Override public synchronized void add(Metric... metrics) {
+    this.metrics = metrics;
     try {
-      transport.write(metrics);
+      flush();
     } catch (IOException e) {
       throw new RuntimeException("Could not flush metrics to transport", e);
+    } finally {
+      this.metrics = null;
     }
   }
 
   /**
-   * An unbuffered collector can not be flushed directly, instead it is flushed as items are added
-   * to it.
+   * {@inheritDoc}
    */
-  @Override public void flush() {
-    throw new IllegalStateException("Can not call flush directly");
+  @Override public void flush() throws IOException {
+    if (metrics == null) {
+      return;
+    }
+    transport.write(metrics);
+  }
+
+  Metric[] getMetrics() {
+    return metrics;
   }
 }

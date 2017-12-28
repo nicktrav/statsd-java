@@ -68,14 +68,6 @@ public class NioUdpTransport implements Transport {
   /**
    * {@inheritDoc}
    */
-  @Override public void close(long timeout, TimeUnit timeUnit)
-      throws IOException, TimeoutException {
-    close();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   @Override public void close() throws IOException {
     channel.close();
   }

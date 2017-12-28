@@ -15,6 +15,7 @@
  */
 package rs.nicktrave.statsd.client;
 
+import java.io.IOException;
 import rs.nicktrave.statsd.common.Metric;
 
 /**
@@ -32,6 +33,8 @@ public interface Collector {
 
   /**
    * Flushes all held {@link Metric}s to an underlying {@link Transport}.
+   *
+   * @throws IOException if flushing to the transport fails
    */
-  void flush();
+  void flush() throws IOException;
 }

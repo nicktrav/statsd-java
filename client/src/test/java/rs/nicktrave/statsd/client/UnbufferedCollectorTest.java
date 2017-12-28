@@ -25,9 +25,11 @@ import org.mockito.junit.MockitoRule;
 import rs.nicktrave.statsd.common.Counter;
 import rs.nicktrave.statsd.common.Metric;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -49,6 +51,7 @@ public class UnbufferedCollectorTest {
     collector.add(METRIC_1, METRIC_2);
 
     verify(transport, times(1)).write(METRIC_1, METRIC_2);
+    assertThat(collector.getMetrics()).isNull();
   }
 
   @Test public void testAdd_transportThrows() throws IOException {
@@ -59,8 +62,7 @@ public class UnbufferedCollectorTest {
   }
 
   @Test public void testFlush() throws IOException {
-    assertThatThrownBy(() -> collector.flush())
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Can not call flush directly");
+    collector.flush();
+    verify(transport, never()).write(any());
   }
 }
