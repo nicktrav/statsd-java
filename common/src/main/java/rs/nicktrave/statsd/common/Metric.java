@@ -15,15 +15,22 @@
  */
 package rs.nicktrave.statsd.common;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
- * A numerical metric with a name and a value.
+ * An immutable, numerical metric with a name and a value.
  */
+// TODO(nickt): Add findbugs and errorprone
+@Immutable
 public abstract class Metric {
 
   public final String name;
-  public final Number value;
+  public final long value;
 
-  Metric(String name, Number value) {
+  /**
+   * A new metric with a name and a value.
+   */
+  public Metric(String name, long value) {
     this.name = name;
     this.value = value;
   }
