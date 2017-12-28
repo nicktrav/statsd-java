@@ -24,16 +24,14 @@ import rs.nicktrave.statsd.common.Metric;
 public interface Collector {
 
   /**
-   * Adds a new {@link Metric} to this collector.
+   * Adds {@link Metric}s to this collector.
    *
-   * @param metric the metric to add
+   * @param metrics the metrics to add
    */
-  void add(Metric metric);
+  void add(Metric ...metrics);
 
   /**
    * Flushes all held {@link Metric}s to an underlying {@link Transport}.
-   *
-   * @param transport the transport to flush the retained metrics to
    */
-  void flush(Transport transport);
+  void flush();
 }
