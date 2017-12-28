@@ -18,6 +18,7 @@ package rs.nicktrave.statsd.client;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import rs.nicktrave.statsd.common.Metric;
 
 /**
@@ -41,5 +42,5 @@ public interface Transport extends Closeable {
    * @param timeout the amount of time
    * @param timeUnit the unit of time
    */
-  void close(long timeout, TimeUnit timeUnit);
+  void close(long timeout, TimeUnit timeUnit) throws IOException, TimeoutException;
 }
