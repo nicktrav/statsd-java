@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package rs.nicktrave.statsd.client;
+package rs.nicktrave.statsd.client.nio;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -30,6 +30,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import rs.nicktrave.statsd.client.Transport;
 import rs.nicktrave.statsd.common.Counter;
 import rs.nicktrave.statsd.common.Metric;
 
