@@ -16,10 +16,10 @@
 package rs.nicktrave.statsd.server.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import rs.nicktrave.statsd.common.Counter;
 import rs.nicktrave.statsd.common.Gauge;
@@ -30,6 +30,7 @@ import rs.nicktrave.statsd.common.Timing;
  * Decodes a {@link DatagramPacket} containing a raw statsd metric string and parses it into a
  * {@link Metric}.
  */
+@Sharable
 public class DatagramToMetricDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
   /**
@@ -49,40 +50,40 @@ public class DatagramToMetricDecoder extends MessageToMessageDecoder<DatagramPac
       throws Exception {
     ByteBuf byteBuf = msg.content();
 
-    ByteBuf nameBuffer = ctx.alloc().buffer();
-    ByteBuf valueBuffer = ctx.alloc().buffer();
-    ByteBuf typeBuffer = ctx.alloc().buffer();
-    ByteBuf sampleBuffer = ctx.alloc().buffer();
+    StringBuilder nameBuilder = new StringBuilder();
+    StringBuilder valueBuilder = new StringBuilder();
+    StringBuilder typeBuilder = new StringBuilder();
+    StringBuilder sampleBuilder = new StringBuilder();
 
     Node node = Node.NAME;
-    ByteBuf currentBuffer = nameBuffer;
+    StringBuilder currentBuilder = nameBuilder;
     while (byteBuf.isReadable()) {
       char c = (char) byteBuf.readByte();
       switch (c) {
         case ':':
-          currentBuffer = valueBuffer;
+          currentBuilder = valueBuilder;
           node = Node.VALUE;
           break;
         case '|':
           if (Node.VALUE == node) {
-            currentBuffer = typeBuffer;
+            currentBuilder = typeBuilder;
             node = Node.TYPE;
           } else {
-            currentBuffer = sampleBuffer;
+            currentBuilder = sampleBuilder;
             node = Node.SAMPLE;
           }
           break;
         case '@':
           break;
         default:
-          currentBuffer.writeByte(c);
+          currentBuilder.append(c);
       }
     }
 
-    String nameStr = nameBuffer.toString(StandardCharsets.US_ASCII);
-    String valueStr = valueBuffer.toString(StandardCharsets.US_ASCII);
-    String typeStr = typeBuffer.toString(StandardCharsets.US_ASCII);
-    String sampleStr = sampleBuffer.toString(StandardCharsets.US_ASCII);
+    String nameStr = nameBuilder.toString();
+    String valueStr = valueBuilder.toString();
+    String typeStr = typeBuilder.toString();
+    String sampleStr = sampleBuilder.toString();
 
     Metric metric;
     // TODO(nickt): Make the types constants on the defined Metric classes.
@@ -99,11 +100,6 @@ public class DatagramToMetricDecoder extends MessageToMessageDecoder<DatagramPac
       default:
         throw new IllegalStateException("Unexpected metric type: " + typeStr);
     }
-
-    nameBuffer.release();
-    valueBuffer.release();
-    typeBuffer.release();
-    sampleBuffer.release();
 
     out.add(metric);
   }
