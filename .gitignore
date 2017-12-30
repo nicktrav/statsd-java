@@ -22,5 +22,4 @@
 hs_err_pid*
 
 # Targets
-client/target
-common/target
+*/target
