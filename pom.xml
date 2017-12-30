@@ -25,6 +25,7 @@
     <module>client</module>
     <module>microbenchmarks</module>
     <module>server</module>
+    <module>example</module>
   </modules>
 
   <properties>
