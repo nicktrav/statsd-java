@@ -32,7 +32,7 @@ public class ExampleServer {
   }
 
   private void run() throws IOException, InterruptedException {
-    InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), 8125);
+    InetSocketAddress address = new InetSocketAddress(8125);
     Thread shutdownThread = new Thread(shutdownLatch::countDown);
     shutdownThread.setDaemon(true);
     Runtime.getRuntime().addShutdownHook(shutdownThread);
