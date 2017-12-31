@@ -2,6 +2,8 @@ package rs.nicktrave.statsd.example;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import rs.nicktrave.statsd.client.Collector;
 import rs.nicktrave.statsd.client.StatsdClient;
 import rs.nicktrave.statsd.client.Transport;
@@ -14,23 +16,24 @@ public class ExampleClient {
 
   private static final int PORT = 8125;
 
-  private void run(String hostname, int runTimeSeconds, int metricsPerSecond)
+  private void run(String hostname, int runTimeSeconds, int metricsPerSecond, int numClients)
       throws IOException, InterruptedException {
 
     System.out.println("Starting server ...");
-    Transport t = new NettyUdpTransport(new InetSocketAddress(hostname, PORT));
-    Collector c = new UnbufferedCollector(t);
-    StatsdClient client = StatsdClient.newBuilder()
-        .withTransport(t)
-        .withCollector(c)
-        .build();
 
-    Thread thread1 = newSendThread(client, runTimeSeconds, metricsPerSecond);
+    List<StatsdClient> clients = new ArrayList<>();
+    for (int i = 0; i < numClients; i++) {
+      clients.add(newClient(hostname));
+    }
+
+    Thread thread1 = newSendThread(clients, runTimeSeconds, metricsPerSecond);
     thread1.start();
     thread1.join();
 
     System.out.println("Shutting down ...");
-    client.close();
+    for (int i = 0; i < numClients; i++) {
+      clients.get(i).close();
+    }
   }
 
   public static void main(String ...args) throws IOException, InterruptedException {
@@ -38,20 +41,31 @@ public class ExampleClient {
     String hostname = args[0];
     int metricsPerSecond = Integer.valueOf(args[1]);
     int runTimeSeconds = Integer.valueOf(args[2]);
+    int numClients = Integer.valueOf(args[3]);
 
-    System.out.println(String.format("Sending a rate of %d metrics per second for %d seconds",
-        metricsPerSecond, runTimeSeconds));
+    System.out.println(String.format("QPS: %d, Runtime: %ds, Clients: %d",
+        metricsPerSecond, runTimeSeconds, numClients));
 
-    new ExampleClient().run(hostname, runTimeSeconds, metricsPerSecond);
+    new ExampleClient().run(hostname, runTimeSeconds, metricsPerSecond, numClients);
   }
 
-  private static Thread newSendThread(StatsdClient client, int runTime, int metricsPerSecond)
+  private static StatsdClient newClient(String hostname) throws InterruptedException {
+    Transport t = new NettyUdpTransport(new InetSocketAddress(hostname, PORT));
+    Collector c = new UnbufferedCollector(t);
+    return StatsdClient.newBuilder()
+        .withTransport(t)
+        .withCollector(c)
+        .build();
+  }
+
+  private static Thread newSendThread(List<StatsdClient> clients, int runTime, int metricsPerSecond)
       throws InterruptedException {
     return new Thread(() -> {
       Metric[] metrics;
       for (int i = 0; i < runTime; i++) {
         metrics = generateMetrics(metricsPerSecond);
-        client.send(metrics);
+
+        clients.forEach(c -> c.send(metrics));
 
         try {
           Thread.sleep(1_000);
