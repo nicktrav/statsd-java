@@ -61,9 +61,8 @@ public class ExampleClient {
   private static Thread newSendThread(List<StatsdClient> clients, int runTime, int metricsPerSecond)
       throws InterruptedException {
     return new Thread(() -> {
-      Metric[] metrics;
       for (int i = 0; i < runTime; i++) {
-        metrics = generateMetrics(metricsPerSecond);
+        Metric[] metrics = generateMetrics(metricsPerSecond);
 
         clients.forEach(c -> c.send(metrics));
 
