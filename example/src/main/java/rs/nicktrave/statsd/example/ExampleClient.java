@@ -1,7 +1,6 @@
 package rs.nicktrave.statsd.example;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import rs.nicktrave.statsd.client.Collector;
 import rs.nicktrave.statsd.client.StatsdClient;
@@ -13,11 +12,13 @@ import rs.nicktrave.statsd.common.Metric;
 
 public class ExampleClient {
 
-  private void run(int runTimeSeconds, int metricsPerSecond)
+  private static final int PORT = 8125;
+
+  private void run(String hostname, int runTimeSeconds, int metricsPerSecond)
       throws IOException, InterruptedException {
 
     System.out.println("Starting server ...");
-    Transport t = new NettyUdpTransport(new InetSocketAddress(InetAddress.getLocalHost(), 8125));
+    Transport t = new NettyUdpTransport(new InetSocketAddress(hostname, PORT));
     Collector c = new UnbufferedCollector(t);
     StatsdClient client = StatsdClient.newBuilder()
         .withTransport(t)
@@ -34,13 +35,14 @@ public class ExampleClient {
 
   public static void main(String ...args) throws IOException, InterruptedException {
     // Parse command line args
-    int metricsPerSecond = Integer.valueOf(args[0]);
-    int runTimeSeconds = Integer.valueOf(args[1]);
+    String hostname = args[0];
+    int metricsPerSecond = Integer.valueOf(args[1]);
+    int runTimeSeconds = Integer.valueOf(args[2]);
 
     System.out.println(String.format("Sending a rate of %d metrics per second for %d seconds",
         metricsPerSecond, runTimeSeconds));
 
-    new ExampleClient().run(runTimeSeconds, metricsPerSecond);
+    new ExampleClient().run(hostname, runTimeSeconds, metricsPerSecond);
   }
 
   private static Thread newSendThread(StatsdClient client, int runTime, int metricsPerSecond)
