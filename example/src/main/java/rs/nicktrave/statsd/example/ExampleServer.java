@@ -16,6 +16,7 @@
 package rs.nicktrave.statsd.example;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 import rs.nicktrave.statsd.common.Metric;
@@ -24,8 +25,6 @@ import rs.nicktrave.statsd.server.netty.NettyUdpServer;
 
 public class ExampleServer {
 
-  private static final InetSocketAddress ADDRESS = new InetSocketAddress(8125);
-
   private final CountDownLatch shutdownLatch;
 
   private ExampleServer() {
@@ -33,13 +32,14 @@ public class ExampleServer {
   }
 
   private void run() throws IOException, InterruptedException {
+    InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), 8125);
     Thread shutdownThread = new Thread(shutdownLatch::countDown);
     shutdownThread.setDaemon(true);
     Runtime.getRuntime().addShutdownHook(shutdownThread);
 
     System.out.println("Starting up server");
     TestProcessor processor = new TestProcessor();
-    NettyUdpServer server = new NettyUdpServer(ADDRESS, processor);
+    NettyUdpServer server = new NettyUdpServer(address, processor);
     server.start();
 
     System.out.println("Waiting for shutdown");

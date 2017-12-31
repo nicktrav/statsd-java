@@ -17,11 +17,18 @@ package rs.nicktrave.statsd.server.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollChannelOption;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.kqueue.KQueueChannelOption;
+import io.netty.channel.kqueue.KQueueDatagramChannel;
+import io.netty.channel.kqueue.KQueueDatagramChannelConfig;
+import io.netty.channel.kqueue.KQueueDomainSocketChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -35,22 +42,29 @@ import rs.nicktrave.statsd.server.MetricProcessor;
  */
 public class NettyUdpServer {
 
+  private static final int THREADS = 10;
+
   private final InetSocketAddress address;
   private final MetricProcessor processor;
 
   private EventLoopGroup group;
-  private Channel channel;
+  //private Channel channel;
+  private Channel[] channels;
 
   public NettyUdpServer(InetSocketAddress address, MetricProcessor processor) {
     this.address = address;
     this.processor = processor;
   }
 
-  public void start() throws IOException {
-    group = new NioEventLoopGroup();
+  public void start() throws IOException, InterruptedException {
+    group = new EpollEventLoopGroup(THREADS);
+    //group = new KQueueEventLoopGroup(THREADS);
     Bootstrap bootstrap = new Bootstrap();
     bootstrap.group(group)
-        .channel(NioDatagramChannel.class)
+        //.channel(KQueueDatagramChannel.class)
+        .channel(EpollDatagramChannel.class)
+        //.option(KQueueChannelOption.SO_REUSEPORT, true)
+        .option(EpollChannelOption.SO_REUSEPORT, true)
         .handler(new ChannelInitializer<DatagramChannel>() {
           @Override protected void initChannel(DatagramChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
@@ -59,22 +73,31 @@ public class NettyUdpServer {
           }
         });
 
-    ChannelFuture future = bootstrap.bind(address);
-    try {
-      future.await();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupted binding to port", e);
+    //ChannelFuture future = bootstrap.bind(address);
+    //try {
+    //  future.await();
+    //} catch (InterruptedException e) {
+    //  Thread.currentThread().interrupt();
+    //  throw new RuntimeException("Interrupted binding to port", e);
+    //}
+    //
+    //if (!future.isSuccess()) {
+    //  throw new IOException("Failed to bind to port");
+    //}
+
+    channels = new Channel[THREADS];
+    for (int i = 0; i < THREADS; i++) {
+      channels[i] = bootstrap.bind(address).sync().channel();
     }
 
-    if (!future.isSuccess()) {
-      throw new IOException("Failed to bind to port");
-    }
-
-    channel = future.channel();
+    //channel = future.channel();
   }
 
   public void shutdown() {
-    channel.close().addListener((ChannelFutureListener) future -> group.shutdownGracefully());
+    //channel.close().addListener((ChannelFutureListener) future -> group.shutdownGracefully());
+    for (Channel channel : channels) {
+      channel.close();
+    }
+    group.shutdownGracefully();
   }
 }

@@ -88,6 +88,10 @@ public class StatsdClient implements Closeable {
     collector.add(metric);
   }
 
+  public void send(Metric ...metrics) {
+    collector.add(metrics);
+  }
+
   /**
    * Attempts to shut down the client within the specified time interval. If the close does not
    * complete within the interval, metrics that are yet to be written are discarded.
