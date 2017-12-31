@@ -23,7 +23,6 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Random;
 import rs.nicktrave.statsd.common.Metric;
 
 /**
@@ -31,8 +30,6 @@ import rs.nicktrave.statsd.common.Metric;
  */
 @Sharable
 class StatsdToDatagramEncoder extends MessageToMessageEncoder<Metric> {
-
-  private static final Random random = new Random();
 
   private final InetSocketAddress address;
 
@@ -45,8 +42,6 @@ class StatsdToDatagramEncoder extends MessageToMessageEncoder<Metric> {
     ByteBuf byteBuf = ctx.alloc().buffer();
     byteBuf.writeCharSequence(msg.toString(), StandardCharsets.US_ASCII);
 
-    InetSocketAddress sender = new InetSocketAddress(random.nextInt(100));
-
-    out.add(new DatagramPacket(byteBuf, address, sender));
+    out.add(new DatagramPacket(byteBuf, address));
   }
 }
