@@ -80,12 +80,12 @@ public class StatsdClient implements Closeable {
   }
 
   /**
-   * Attempts to send a metric to a statsd server.
+   * Attempts to send a collection of metrics to a statsd server.
    *
-   * @param metric the metric to send
+   * @param metrics the metrics to send
    */
-  public void send(Metric metric) {
-    collector.add(metric);
+  public void send(Metric[] metrics) {
+    collector.add(metrics);
   }
 
   /**

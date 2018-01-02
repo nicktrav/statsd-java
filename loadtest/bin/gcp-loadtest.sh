@@ -40,4 +40,9 @@ function run_server() {
     rs.nicktrave.statsd.loadtest.TestServer "$@"
 }
 
+function run_client() {
+  java -cp statsd-java/loadtest/target/loadtest.jar \
+    rs.nicktrave.statsd.loadtest.LoadGenerator "$@"
+}
+
 $@
