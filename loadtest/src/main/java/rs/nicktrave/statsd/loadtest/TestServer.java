@@ -18,6 +18,7 @@ package rs.nicktrave.statsd.loadtest;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 import rs.nicktrave.statsd.common.Metric;
 import rs.nicktrave.statsd.server.MetricProcessor;
 import rs.nicktrave.statsd.server.netty.NettyUdpServer;
@@ -77,7 +78,7 @@ public class TestServer {
     System.out.println("Waiting for shutdown");
     shutdownLatch.await();
 
-    System.out.println("Finished having processed " + processor.eventCount + " metrics");
+    System.out.println("Finished having processed " + processor.eventCount.get() + " metrics");
     System.out.println("Shutting down");
     server.shutdown();
   }
@@ -107,10 +108,10 @@ public class TestServer {
    */
   private static class CountingProcessor implements MetricProcessor {
 
-    private long eventCount;
+    private AtomicLong eventCount = new AtomicLong();
 
     @Override public void process(Metric metric) {
-      eventCount++;
+      eventCount.incrementAndGet();
     }
   }
 }

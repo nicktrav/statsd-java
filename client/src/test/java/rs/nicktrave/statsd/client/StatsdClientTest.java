@@ -65,7 +65,7 @@ public class StatsdClientTest {
   }
 
   @Test public void testSend() {
-    statsdClient.send(metric);
+    statsdClient.send(new Metric[]{metric});
     verify(collector, times(1)).add(metric);
   }
 
